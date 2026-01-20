@@ -22,13 +22,14 @@ public class AssignedDelivery {
     private OffsetDateTime assignedAt;
 
     @ManyToOne(optional = false)
-    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PACKAGE)
     private Courier courier;
 
     static AssignedDelivery pending(UUID deliveryId, Courier courier){
         AssignedDelivery delivery = new AssignedDelivery();
         delivery.setId(deliveryId);
         delivery.setAssignedAt(OffsetDateTime.now());
+        delivery.setCourier(courier);
         return delivery;
     }
 }

@@ -9,6 +9,8 @@ import com.samuel.algadelivery.courier.management.domain.service.CourierPayoutSe
 import com.samuel.algadelivery.courier.management.domain.service.CourierRegistrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
@@ -17,11 +19,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.Random;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/couriers")
 @RequiredArgsConstructor
+@Slf4j
 public class CourierController {
 
     private final CourierRegistrationService courierRegistrationService;
@@ -43,6 +47,7 @@ public class CourierController {
 
     @GetMapping
     public PagedModel<Courier> findAll(@PageableDefault Pageable pageable){
+        log.info("FindAll Request");
         return new PagedModel<>(
                 courierRepository.findAll(pageable)
         );
@@ -54,8 +59,19 @@ public class CourierController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @SneakyThrows
     @PostMapping("/payout-calculation")
     public CourierPayoutResultModel calculate(@RequestBody CourierPayoutCalculationInput input){
+        log.info("Calculating");
+
+        //codigo para forçar falhas e testar a resiliencia
+        if(Math.random() < 0.5){
+            throw new RuntimeException();
+        }
+        int millis = new Random().nextInt(400);
+        Thread.sleep(millis);
+        //fim
+
         BigDecimal payoutFee = courierPayoutService.calculate(input.getDistanceInKm());
         return new CourierPayoutResultModel(payoutFee);
     }

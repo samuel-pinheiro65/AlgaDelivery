@@ -48,7 +48,7 @@ public class Courier {
         courier.setName(name);
         courier.setPhone(phone);
         courier.setFulfilledDeliveriesQuantity(0);
-        courier.setFulfilledDeliveriesQuantity(0);
+        courier.setPendingDeliveriesQuantity(0);
         return courier;
     }
 

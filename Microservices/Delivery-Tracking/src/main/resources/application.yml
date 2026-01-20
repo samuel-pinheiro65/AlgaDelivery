@@ -9,3 +9,49 @@ spring:
     url: jdbc:postgresql://localhost:5432/deliverydb
     username: postgres
     password: postgres
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092 #enderco do no do cluster
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer #chave como string
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer #body como JSON
+      properties:
+        spring.json.type.mapping:
+          delivery-placed-event:com.samuel.algadelivery.delivery.tracking.domain.event.DeliveryPlacedEvent,
+          delivery-picked-up-event:com.samuel.algadelivery.delivery.tracking.domain.event.DeliveryPickUpEvent,
+          delivery-fulfilled-event:com.samuel.algadelivery.delivery.tracking.domain.event.DeliveryFulfilledEvent
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka/
+  instance:
+    instance-id: ${random.value}
+    prefer-ip-address: true
+
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 2
+        waitDuration: 20ms
+    instances:
+      Retry_CourierAPIClient_payoutCalculation:
+        baseConfig: default
+        maxAttempts: 3
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+        ignoreExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowType: COUNT_BASED #TIME_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50 #PERCENTUAL DE CHAMADAS QUE DEVEM FALHAR
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 10000
+    instances:
+      CircuitBreaker_CourierAPIClient_payout-calculation:
+        baseConfig: default
+        waitDurationInOpenState: 5000
